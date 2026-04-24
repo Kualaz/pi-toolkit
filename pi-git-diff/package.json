@@ -1,0 +1,27 @@
+{
+  "name": "pi-git-diff",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pi extension package that registers a themed git_diff tool for rendering git diffs with addition/deletion colors.",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'nothing to build'",
+    "check": "echo 'nothing to check'"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "git-diff"
+  ],
+  "license": "MIT",
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-tui": "*",
+    "typebox": "*"
+  }
+}
