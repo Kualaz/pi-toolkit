@@ -1,0 +1,25 @@
+{
+  "name": "pi-footer-control",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pi extension package for configuring which built-in footer fields are shown on the left or right.",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'nothing to build'",
+    "check": "echo 'nothing to check'"
+  },
+  "keywords": [
+    "pi-package"
+  ],
+  "license": "MIT",
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-ai": "*",
+    "@mariozechner/pi-tui": "*"
+  }
+}
