@@ -74,7 +74,21 @@ return {
   name = "pi-nvim",
   lazy = false,
   config = function()
-    require("pi").setup()
+    local pi = require("pi")
+    pi.setup()
+
+    vim.keymap.set("n", "<leader>aa", function()
+      pi.ask({ initial_text = "@this " })
+    end, { desc = "Ask Pi (@this = current line)" })
+    vim.keymap.set("x", "<leader>aa", function()
+      pi.ask({ selection = pi.capture_selection(), initial_text = "@this " })
+    end, { desc = "Ask Pi (@this = selection)" })
+    vim.keymap.set("n", "<leader>ab", function()
+      pi.send_all()
+    end, { desc = "Ask Pi with buffer" })
+    vim.keymap.set("n", "<leader>ap", function()
+      pi.list_sessions()
+    end, { desc = "Pick Pi session" })
   end,
 }
 ```
@@ -87,8 +101,9 @@ The client intentionally keeps the Neovim command surface small. It registers on
 
 The Ask Pi dialog supports opencode-style context placeholders:
 
-- `<leader>aa` opens the dialog with `@this ` prefilled; `:Pi` opens it blank.
-- `<leader>ab` / `:PiSendAll` opens the dialog with `@buffer ` prefilled.
+- The client plugin does not install global keymaps by default; configure them in your Neovim plugin spec.
+- The example `<leader>aa` mapping opens the dialog with `@this ` prefilled; `:Pi` opens it blank.
+- The example `<leader>ab` mapping / `:PiSendAll` opens the dialog with `@buffer ` prefilled.
 - Typing `@` opens a native insert-completion dropdown in place. Current targets are `@this`, `@buffer`, and `@diagnostics`; cancelling leaves the literal `@`.
 - Placeholder tokens are removed from the typed prompt before sending.
 - Rendered context is appended under a `Context:` heading, so trailing prompt text does not corrupt markdown fences.
@@ -105,7 +120,7 @@ Context target behavior:
 
 If the prompt does not include a context placeholder, it is sent as typed.
 
-Default local keymaps:
+Example local keymaps:
 
 | Key | Action |
 | --- | --- |
