@@ -60,16 +60,23 @@ Use `/pi-nvim` or `/pi-nvim-info` in Pi to show the active socket path.
 
 ## Neovim setup
 
-The Neovim client implementation lives in its own local repo:
+The Neovim client implementation lives in the public repo:
 
 ```text
-/Users/kuala/Documents/Projects/OpenSource/pi-nvim
+https://github.com/Kualaz/pi-nvim
 ```
 
-The Neovim config only contains the lazy.nvim spec that loads that repo:
+Example lazy.nvim spec:
 
-```text
-~/.config/nvim/lua/plugins/pi.lua
+```lua
+return {
+  "Kualaz/pi-nvim",
+  name = "pi-nvim",
+  lazy = false,
+  config = function()
+    require("pi").setup()
+  end,
+}
 ```
 
 The client intentionally keeps the Neovim command surface small. It registers only:
