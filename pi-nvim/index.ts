@@ -29,11 +29,14 @@ type IncomingMessage = {
   type?: string;
   message?: unknown;
   images?: unknown;
+  events?: unknown;
   deliverAs?: unknown;
   delivery?: unknown;
   streamingBehavior?: unknown;
   snapToBottom?: unknown;
 };
+
+const FILE_CHANGED_EVENT = "file.changed";
 
 function cwdHash(cwd: string): string {
   return crypto.createHash("md5").update(cwd).digest("hex").slice(0, 12);
@@ -158,6 +161,8 @@ export default function piNvimExtension(pi: ExtensionAPI) {
   let activeCtx: ExtensionContext | null = null;
   let activeCwd: string | null = null;
   let startedAt: string | null = null;
+  let eventSeq = 0;
+  const subscribers = new Set<net.Socket>();
 
   function cleanup(): void {
     if (server) {
@@ -168,6 +173,15 @@ export default function piNvimExtension(pi: ExtensionAPI) {
       }
       server = null;
     }
+
+    for (const subscriber of subscribers) {
+      try {
+        subscriber.destroy();
+      } catch {
+        // ignore disconnect races
+      }
+    }
+    subscribers.clear();
 
     const currentSocketPath = socketPath;
     unlinkIfExists(currentSocketPath);
@@ -206,7 +220,7 @@ export default function piNvimExtension(pi: ExtensionAPI) {
           sessionFile: ctx.sessionManager.getSessionFile(),
           startedAt,
           protocol: "pi-nvim-jsonl-v1",
-          capabilities: ["ping", "prompt", "steer", "follow_up", "status"],
+          capabilities: ["ping", "prompt", "steer", "follow_up", "status", "subscribe", "file_changed_events"],
         }),
       );
     } catch (error) {
@@ -214,10 +228,64 @@ export default function piNvimExtension(pi: ExtensionAPI) {
     }
   }
 
+  function removeSubscriber(conn: net.Socket): void {
+    subscribers.delete(conn);
+  }
+
+  function subscribe(conn: net.Socket, msg: IncomingMessage): void {
+    subscribers.add(conn);
+    conn.once("close", () => removeSubscriber(conn));
+    conn.once("end", () => removeSubscriber(conn));
+    response(conn, {
+      ok: true,
+      type: "subscribed",
+      events: Array.isArray(msg.events) && msg.events.length > 0 ? msg.events : [FILE_CHANGED_EVENT],
+    });
+  }
+
+  function emitEvent(payload: Record<string, unknown>): void {
+    if (subscribers.size === 0) return;
+
+    const message = `${JSON.stringify({ type: "event", seq: ++eventSeq, at: new Date().toISOString(), ...payload })}\n`;
+    for (const subscriber of Array.from(subscribers)) {
+      try {
+        subscriber.write(message);
+      } catch {
+        subscribers.delete(subscriber);
+        try {
+          subscriber.destroy();
+        } catch {
+          // ignore disconnect races
+        }
+      }
+    }
+  }
+
+  function emitFileChanged(filePath: string, originalPath: string, toolName: string): void {
+    emitEvent({
+      event: FILE_CHANGED_EVENT,
+      path: filePath,
+      originalPath,
+      tool: toolName,
+      cwd: activeCwd,
+    });
+  }
+
   function handleMessage(raw: string, conn: net.Socket): void {
     try {
       const msg = JSON.parse(raw) as IncomingMessage;
       const type = typeof msg.type === "string" ? msg.type : "";
+
+      if (type === "subscribe") {
+        subscribe(conn, msg);
+        return;
+      }
+
+      if (type === "unsubscribe") {
+        removeSubscriber(conn);
+        response(conn, { ok: true, type: "unsubscribed" });
+        return;
+      }
 
       if (type === "ping") {
         response(conn, {
@@ -324,7 +392,9 @@ export default function piNvimExtension(pi: ExtensionAPI) {
         }
       });
 
+      conn.on("close", () => removeSubscriber(conn));
       conn.on("error", () => {
+        removeSubscriber(conn);
         // Ignore client disconnect races.
       });
     });
@@ -365,6 +435,18 @@ export default function piNvimExtension(pi: ExtensionAPI) {
   pi.on("session_shutdown", async () => {
     cleanup();
     process.off("exit", processCleanup);
+  });
+
+  pi.on("tool_result", async (event, ctx) => {
+    if (event.isError) return;
+    if (event.toolName !== "edit" && event.toolName !== "write") return;
+
+    const input = event.input as { path?: unknown } | undefined;
+    if (!input || typeof input.path !== "string" || input.path.trim() === "") return;
+
+    const originalPath = input.path;
+    const changedPath = path.isAbsolute(originalPath) ? originalPath : path.resolve(ctx.cwd, originalPath);
+    emitFileChanged(changedPath, originalPath, event.toolName);
   });
 
   pi.registerCommand("pi-nvim", {

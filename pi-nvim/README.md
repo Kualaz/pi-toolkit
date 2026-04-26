@@ -20,18 +20,23 @@ Send newline-delimited JSON to the socket:
 {"type":"prompt","message":"queue this if busy","deliverAs":"followUp"}
 {"type":"steer","message":"adjust course now"}
 {"type":"follow_up","message":"do this after the current task"}
+{"type":"subscribe","events":["file.changed"]}
 ```
 
-Responses are newline-delimited JSON:
+Responses and events are newline-delimited JSON:
 
 ```json
 {"ok":true,"type":"pong"}
 {"ok":true,"type":"accepted","delivery":"immediate"}
 {"ok":true,"type":"accepted","delivery":"followUp"}
+{"ok":true,"type":"subscribed","events":["file.changed"]}
+{"type":"event","event":"file.changed","path":"/abs/path/file.lua","originalPath":"file.lua","tool":"edit"}
 {"ok":false,"error":"..."}
 ```
 
 When Pi is busy, plain `prompt` messages default to `followUp` delivery unless `deliverAs`/`delivery`/`streamingBehavior` is set to `steer` or `followUp`.
+
+Neovim keeps a subscription socket open for `file.changed` events. The Pi extension emits those events after successful built-in `edit` and `write` tool results; the Neovim plugin responds with `:checktime` so open buffers notice disk changes. Shell commands are intentionally not reported.
 
 ## Pi setup
 
