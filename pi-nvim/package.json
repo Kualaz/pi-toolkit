@@ -1,0 +1,26 @@
+{
+  "name": "pi-nvim-local",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pi extension package that exposes a local Unix socket for Neovim to send prompts and editor context into the active Pi session.",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'nothing to build'",
+    "check": "echo 'nothing to check'"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "neovim",
+    "nvim"
+  ],
+  "license": "MIT",
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  }
+}
