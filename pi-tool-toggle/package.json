@@ -1,0 +1,14 @@
+{
+  "name": "pi-tool-toggle",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pi extension to toggle edit, write, and bash tools on and off.",
+  "pi": {
+    "extensions": ["./index.ts"]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-tui": "*"
+  }
+}
