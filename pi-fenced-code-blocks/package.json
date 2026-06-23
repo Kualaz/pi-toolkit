@@ -1,0 +1,27 @@
+{
+  "name": "pi-fenced-code-blocks",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pi extension package that restyles markdown fenced code blocks with hidden fences, configurable background color, and language symbols.",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'nothing to build'",
+    "check": "echo 'nothing to check'"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "markdown",
+    "code-blocks"
+  ],
+  "license": "MIT",
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-tui": "*"
+  }
+}
