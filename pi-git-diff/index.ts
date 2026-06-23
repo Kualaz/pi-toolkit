@@ -96,13 +96,12 @@ export default function gitDiffExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "git_diff",
     label: "git diff",
-    description: "Run git diff and render added/removed lines with Pi's diff theme colors.",
+    description: "Run git diff and render added/removed lines",
     promptSnippet: "Use git_diff to inspect repository changes with themed added and removed diff lines.",
     promptGuidelines: [
-      "Use git_diff instead of bash for git diff requests so additions and deletions render with Pi diff colors.",
+      "Use git_diff instead of bash for git diff requests ",
       "Pass staged=true when the user asks for staged/cached changes.",
       "Pass path for a specific file or pathspec. Strip a leading @ from Pi path references if present.",
-      "This tool is read-only and must not be used for commands that mutate the repository.",
     ],
     parameters: PARAMETERS,
 
