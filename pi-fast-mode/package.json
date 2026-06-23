@@ -1,0 +1,26 @@
+{
+  "name": "pi-fast-mode",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pi extension that toggles and benchmarks OpenAI priority service tier fast mode.",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'nothing to build'",
+    "check": "echo 'nothing to check'"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "openai",
+    "fast-mode"
+  ],
+  "license": "MIT",
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  }
+}
