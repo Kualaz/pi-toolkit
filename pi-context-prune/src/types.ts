@@ -13,7 +13,7 @@
  *   - Runtime state: Map<toolCallId, ToolCallRecord> rebuilt on session_start
  *   - Session metadata: pi.appendEntry("context-prune-index", IndexEntryData)
  *     stored once per summarized batch; NOT in LLM context
- *   - User config: ~/.pi/agent/context-prune/settings.json owned by this extension
+ *   - User config: <agent-dir>/context-prune/settings.json owned by this extension
  *
  * CONFIG FORMAT (Ph1 step 4):
  *   { "enabled": false, "summarizerModel": "default", "pruneOn": "agent-message", "showSummaryInUI": true }
@@ -107,7 +107,7 @@ export const PRUNE_ON_MODES: { value: PruneOn; label: string }[] = [
   { value: "agentic-auto", label: "Agentic auto" },
 ];
 
-/** Extension config stored in ~/.pi/agent/context-prune/settings.json */
+/** Extension config stored in <agent-dir>/context-prune/settings.json */
 export interface ContextPruneConfig {
   /** Whether to prune raw tool outputs from future LLM context */
   enabled: boolean;

@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { loadConfig, saveConfig, SETTINGS_PATH } from "./src/config.js";
 import { installMarkdownPatch, isHexColor, uninstallMarkdownPatch, updateMarkdownPatchConfig } from "./src/patch.js";
 import { DEFAULT_CONFIG, normalizeConfig, normalizeLanguage, type CodeBlockConfig } from "./src/types.js";

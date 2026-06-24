@@ -2,7 +2,7 @@
  * context-prune — Pi extension entry point
  *
  * Wires together all modules:
- *   config       — load/save ~/.pi/agent/context-prune/settings.json
+ *   config       — load/save <agent-dir>/context-prune/settings.json
  *   batch-capture — serialize turn_end event into CapturedBatch
  *   summarizer   — call LLM to summarize a CapturedBatch
  *   indexer      — maintain Map<toolCallId, ToolCallRecord> + session persistence
@@ -13,7 +13,7 @@
  * Usage:  pi -e .
  */
 
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { loadConfig } from "./src/config.js";
 import { captureBatch } from "./src/batch-capture.js";
 import { summarizeBatches } from "./src/summarizer.js";
@@ -143,7 +143,7 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx) => {
     const generation = beginSession();
 
-    // Load config from ~/.pi/agent/context-prune/settings.json
+    // Load config from <agent-dir>/context-prune/settings.json
     currentConfig.value = await loadConfig();
     if (!isSessionCurrent(generation)) return;
 

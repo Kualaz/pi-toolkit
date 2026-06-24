@@ -1,4 +1,4 @@
-import { Markdown, truncateToWidth, visibleWidth, type MarkdownTheme } from "@mariozechner/pi-tui";
+import { Markdown, truncateToWidth, visibleWidth, type MarkdownTheme } from "@earendil-works/pi-tui";
 import { DEFAULT_CONFIG, normalizeLanguage, type CodeBlockConfig } from "./types.js";
 
 type MarkdownInstance = {

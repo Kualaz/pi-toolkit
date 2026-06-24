@@ -1,6 +1,6 @@
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { getSettingsListTheme } from "@mariozechner/pi-coding-agent";
-import { Container, type SettingItem, SettingsList, truncateToWidth } from "@mariozechner/pi-tui";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { getSettingsListTheme } from "@earendil-works/pi-coding-agent";
+import { Container, type SettingItem, SettingsList, truncateToWidth } from "@earendil-works/pi-tui";
 import { loadConfig, saveConfig, SETTINGS_PATH } from "./src/config.js";
 import { isAutoCompactEnabled, renderFooter } from "./src/footer.js";
 import {
@@ -46,7 +46,7 @@ function applyFooter(ctx: ExtensionContext, config: FooterConfig, getThinkingLev
   if (!ctx.hasUI) return;
 
   const footerConfig = cloneConfig(config);
-  const autoCompactEnabled = isAutoCompactEnabled(ctx.cwd);
+  const autoCompactEnabled = isAutoCompactEnabled(ctx.cwd, ctx.isProjectTrusted());
   ctx.ui.setFooter((tui, theme, footerData) => {
     const unsubBranch = footerData.onBranchChange(() => tui.requestRender());
 

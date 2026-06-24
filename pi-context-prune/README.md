@@ -122,7 +122,7 @@ The extension registers the `/pruner` command:
 3. **Show summaries in UI** — toggle whether future `context-prune-summary` messages are visible in the TUI
 4. **Summarizer model** — press Enter to open a searchable submenu listing `"default"` plus all available models
 
-All changes are saved immediately to `~/.pi/agent/context-prune/settings.json` and reflected in the footer status widget where relevant.
+All changes are saved immediately to `<agent-dir>/context-prune/settings.json` and reflected in the footer status widget where relevant.
 
 ## Tools
 
@@ -150,7 +150,7 @@ The tool is guided by a system prompt that instructs the model to use it after c
 
 ## Configuration
 
-Config is stored in `~/.pi/agent/context-prune/settings.json` (global, project-independent):
+Config is stored in `<agent-dir>/context-prune/settings.json` (global, project-independent):
 
 ```json
 {
@@ -178,7 +178,7 @@ Config is stored in `~/.pi/agent/context-prune/settings.json` (global, project-i
 index.ts                    — entry point, wires events + modules
 src/
   types.ts                  — shared types, constants, PruneOn modes
-  config.ts                 — load/save ~/.pi/agent/context-prune/settings.json
+  config.ts                 — load/save <agent-dir>/context-prune/settings.json
   batch-capture.ts          — serialize turn_end event → CapturedBatch
   summarizer.ts             — resolve model, call LLM, build summary text
   indexer.ts                — Map<toolCallId, ToolCallRecord> + session persistence
@@ -194,7 +194,7 @@ src/
 
 ```
 session_start
-  └─► loadConfig()              read ~/.pi/agent/context-prune/settings.json
+  └─► loadConfig()              read <agent-dir>/context-prune/settings.json
   └─► indexer.reconstruct()     rebuild Map from session branch entries
   └─► statsAccum.reconstruct()  rebuild stats from session branch entries
   └─► syncToolActivation()      activate/deactivate context_prune tool
@@ -236,7 +236,7 @@ before_agent_start (agentic-auto mode)
 
 ### Session persistence
 
-- **Config** lives in `~/.pi/agent/context-prune/settings.json` — the extension's own file, independent of Pi's project settings
+- **Config** lives in `<agent-dir>/context-prune/settings.json` — the extension's own file, independent of Pi's project settings
 - **Index** is persisted via `pi.appendEntry("context-prune-index", { toolCalls })` — one entry per summarized batch, NOT in LLM context
 - **Summaries** are injected as `custom_message` entries with `customType: "context-prune-summary"` — these ARE in LLM context (replacing the raw outputs) even when `showSummaryInUI` hides them from the TUI
 - The underlying session JSONL file always retains the original `ToolResultMessage` entries unchanged

@@ -1,8 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { homedir } from "node:os";
-import type { ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
+import { CONFIG_DIR_NAME, getAgentDir, type ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import type { FooterConfig, FooterFieldGroup, FooterFieldId } from "./types.js";
 import { FIELD_DEFINITIONS } from "./types.js";
 
@@ -75,13 +74,9 @@ function readJson(path: string): any | undefined {
   }
 }
 
-function getPiAgentDir(): string {
-  return process.env.PI_CODING_AGENT_DIR || join(homedir(), ".pi", "agent");
-}
-
-export function isAutoCompactEnabled(cwd: string): boolean {
-  const globalSettings = readJson(join(getPiAgentDir(), "settings.json"));
-  const projectSettings = readJson(join(cwd, ".pi", "settings.json"));
+export function isAutoCompactEnabled(cwd: string, projectTrusted = false): boolean {
+  const globalSettings = readJson(join(getAgentDir(), "settings.json"));
+  const projectSettings = projectTrusted ? readJson(join(cwd, CONFIG_DIR_NAME, "settings.json")) : undefined;
 
   let enabled = true;
   if (globalSettings?.compaction?.enabled !== undefined) {
@@ -249,7 +244,7 @@ export function renderFooter(
   footerData: FooterData,
   config: FooterConfig,
   getThinkingLevel: () => string,
-  autoCompactEnabled = isAutoCompactEnabled(ctx.cwd),
+  autoCompactEnabled = isAutoCompactEnabled(ctx.cwd, ctx.isProjectTrusted()),
 ): string[] {
   const state: RenderState = {
     ctx,

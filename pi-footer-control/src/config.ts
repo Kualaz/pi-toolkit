@@ -1,12 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { homedir } from "node:os";
+import { getAgentDir } from "@earendil-works/pi-coding-agent";
 import type { FooterConfig } from "./types.js";
 import { DEFAULT_CONFIG, normalizeConfig } from "./types.js";
-
-function getAgentDir(): string {
-  return process.env.PI_CODING_AGENT_DIR || join(homedir(), ".pi", "agent");
-}
 
 /** Path to this extension's settings file in the active Pi agent directory. */
 export const SETTINGS_PATH = join(getAgentDir(), "footer", "settings.json");

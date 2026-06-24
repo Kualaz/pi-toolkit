@@ -1,4 +1,5 @@
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ImageContent, TextContent } from "@earendil-works/pi-ai";
 import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as net from "node:net";
@@ -106,28 +107,23 @@ function cleanupStaleSocketFiles(): void {
   }
 }
 
-function toPiContent(message: string, images: unknown): string | Array<any> {
+function toPiContent(message: string, images: unknown): string | Array<TextContent | ImageContent> {
   if (!Array.isArray(images) || images.length === 0) return message;
 
-  const content: Array<any> = [{ type: "text", text: message }];
+  const content: Array<TextContent | ImageContent> = [{ type: "text", text: message }];
 
   for (const image of images as IncomingImage[]) {
     if (!image || typeof image !== "object") continue;
 
     if ("source" in image && image.source?.type === "base64") {
-      content.push(image);
+      if (typeof image.source.data === "string" && typeof image.source.mediaType === "string") {
+        content.push({ type: "image", data: image.source.data, mimeType: image.source.mediaType });
+      }
       continue;
     }
 
     if ("data" in image && typeof image.data === "string" && typeof image.mimeType === "string") {
-      content.push({
-        type: "image",
-        source: {
-          type: "base64",
-          mediaType: image.mimeType,
-          data: image.data,
-        },
-      });
+      content.push({ type: "image", data: image.data, mimeType: image.mimeType });
     }
   }
 

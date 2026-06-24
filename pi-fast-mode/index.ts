@@ -1,6 +1,6 @@
-import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { streamSimple } from "@mariozechner/pi-ai";
-import type { AssistantMessageEvent, Context, Model, SimpleStreamOptions, Transport } from "@mariozechner/pi-ai";
+import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { streamSimple } from "@earendil-works/pi-ai/compat";
+import type { AssistantMessageEvent, Context, Model, SimpleStreamOptions, Transport } from "@earendil-works/pi-ai/compat";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -483,7 +483,7 @@ async function runBenchmark(ctx: ExtensionCommandContext, options: BenchmarkOpti
   }
 
   const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
-  if (!auth.ok) throw new Error(auth.error);
+  if (auth.ok === false) throw new Error(auth.error);
 
   const model = ctx.model as Model<any>;
   const modelName = modelLabel(model);

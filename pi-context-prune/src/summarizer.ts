@@ -1,5 +1,5 @@
-import { complete } from "@mariozechner/pi-ai";
-import type { ExtensionContext } from "@mariozechner/pi-coding-agent";
+import { complete } from "@earendil-works/pi-ai/compat";
+import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import type { CapturedBatch, ContextPruneConfig, SummarizeResult } from "./types.js";
 import { serializeBatchForSummarizer, serializeBatchesForSummarizer } from "./batch-capture.js";
 
@@ -67,7 +67,7 @@ export async function summarizeBatch(
     const model = resolveModel(config, ctx);
 
     const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
-    if (!auth.ok) {
+    if (auth.ok === false) {
       ctx.ui.notify(`pruner: summarization failed: ${auth.error}`, "error");
       return null;
     }
@@ -132,7 +132,7 @@ export async function summarizeBatches(
     const model = resolveModel(config, ctx);
 
     const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
-    if (!auth.ok) {
+    if (auth.ok === false) {
       ctx.ui.notify(`pruner: summarization failed: ${auth.error}`, "error");
       return null;
     }

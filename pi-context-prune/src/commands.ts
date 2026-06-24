@@ -4,11 +4,11 @@ import {
   PRUNE_ON_MODES,
   STATUS_WIDGET_ID,
 } from "./types.js";
-import type { ExtensionAPI, ExtensionCommandContext } from "@mariozechner/pi-coding-agent";
-import { saveConfig } from "./config.js";
+import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
+import { saveConfig, SETTINGS_PATH } from "./config.js";
 import { formatTokens, formatCost } from "./stats.js";
-import { Container, type Component, Text, SettingsList, type SettingItem } from "@mariozechner/pi-tui";
-import { DynamicBorder, getSettingsListTheme } from "@mariozechner/pi-coding-agent";
+import { Container, type Component, Text, SettingsList, type SettingItem } from "@earendil-works/pi-tui";
+import { DynamicBorder, getSettingsListTheme } from "@earendil-works/pi-coding-agent";
 import { buildPruneTree, TreeBrowser } from "./tree-browser.js";
 import type { ToolCallIndexer } from "./indexer.js";
 
@@ -138,7 +138,7 @@ Related:
   - pi-context extension (provides context_tag): https://github.com/ttttmr/pi-context
   - Anthropic prompt caching docs: https://docs.claude.com/en/docs/build-with-claude/prompt-caching
 
-Settings are saved to ~/.pi/agent/context-prune/settings.json`;
+Settings are saved to ${SETTINGS_PATH}`;
 
 // ── Command registration ────────────────────────────────────────────────────
 
@@ -262,27 +262,19 @@ export function registerCommands(
             syncToolActivation();
           };
 
-          settingsList = new SettingsList(
-            items,
-            10,
-            getSettingsListTheme(),
-            onChange,
-            () => {}, // onCancel — just close the overlay
-            { enableSearch: false },
-          );
-
           // Use ctx.ui.custom() to show the settings list as an overlay.
           // The factory receives (tui, theme, keybindings, done) and returns a Component.
-          // When done() is called (by pressing Escape via SettingsList's onCancel),
-          // the custom UI closes and the promise resolves.
+          // Passing done() as SettingsList's onCancel lets Escape close the custom UI.
           await ctx.ui.custom(
             (_tui, _theme, _keybindings, done) => {
-              // Wrap onCancel to call done() so the custom UI closes when Escape is pressed
-              const originalOnCancel = settingsList.onCancel;
-              settingsList.onCancel = () => {
-                originalOnCancel();
-                done(undefined);
-              };
+              settingsList = new SettingsList(
+                items,
+                10,
+                getSettingsListTheme(),
+                onChange,
+                () => done(undefined),
+                { enableSearch: false },
+              );
 
               return new SettingsOverlay("pruner settings", settingsList);
             },

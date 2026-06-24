@@ -7,8 +7,8 @@
  * Activation/deactivation is handled in index.ts via ctx.setActiveTools().
  */
 
-import { Type } from "@sinclair/typebox";
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import { Type } from "typebox";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { CONTEXT_PRUNE_TOOL_NAME } from "./types.js";
 
 /**
@@ -47,6 +47,7 @@ export function registerContextPruneTool(
               text: "Context prune completed. Pending tool-call results have been summarized and pruned from context. Use context_tree_query with the toolCallIds from the summary to retrieve full outputs if needed.",
             },
           ],
+          details: { success: true },
         };
       } catch (err: any) {
         return {
@@ -56,6 +57,7 @@ export function registerContextPruneTool(
               text: `Context prune failed: ${err.message}`,
             },
           ],
+          details: { success: false, error: err.message },
         };
       }
     },

@@ -28,7 +28,7 @@ pi-context-prune/
 ├── package.json               # Pi package manifest; declares extension at ./index.ts
 └── src/
     ├── types.ts               # Shared types, constants, and interfaces (including PruneOn modes)
-    ├── config.ts              # Load/save ~/.pi/agent/context-prune/settings.json
+    ├── config.ts              # Load/save <agent-dir>/context-prune/settings.json
     ├── batch-capture.ts       # Serialize turn_end events into CapturedBatch objects
     ├── summarizer.ts          # LLM call that summarizes a CapturedBatch to markdown
     ├── indexer.ts             # Runtime Map<toolCallId, ToolCallRecord> + session persistence
@@ -42,7 +42,7 @@ pi-context-prune/
 Wires all modules together and registers Pi event handlers:
 - **`pendingBatches: CapturedBatch[]`** — queue of captured batches not yet summarized; drained by `flushPending`.
 - **`flushPending(ctx)`** — summarizes + indexes all pending batches in a **single LLM call** and injects one combined steer message. Sets status to "prune: summarizing…" while working, then restores the status widget with stats (e.g. `prune: ON (Every turn) │ ↑1.2k ↓340 $0.003`). Accumulates summarizer token/cost stats via `StatsAccumulator` and persists them to session. Called immediately on `every-turn` or `agentic-auto`, deferred to the trigger event for other modes.
-- **`session_start`** — loads config from `~/.pi/agent/context-prune/settings.json`, rebuilds the in-memory index and stats accumulator, clears `pendingBatches`, updates the footer status widget, and notifies the user of the loaded state.
+- **`session_start`** — loads config from `<agent-dir>/context-prune/settings.json`, rebuilds the in-memory index and stats accumulator, clears `pendingBatches`, updates the footer status widget, and notifies the user of the loaded state.
 - **`session_tree`** — rebuilds the index and stats accumulator after branch navigation (pending batches and stats belong to the current branch).
 - **`turn_end`** — captures the batch, pushes to `pendingBatches`. Behavior depends on `pruneOn` mode:
   - `every-turn`: flushes immediately.
@@ -64,14 +64,14 @@ Single source of truth for all interfaces and constants:
   - `agent-message`: batch turns, flush when the agent sends a final text-only response (or when the agent loop ends).
   - `agentic-auto`: the LLM decides when to prune by calling the `context_prune` tool, guided by `AGENTIC_AUTO_SYSTEM_PROMPT`.
 - **`PRUNE_ON_MODES`** — `{ value, label }` array for interactive selectors.
-- **`ContextPruneConfig`** — `{ enabled, summarizerModel, pruneOn, showSummaryInUI }` stored in `~/.pi/agent/context-prune/settings.json`.
+- **`ContextPruneConfig`** — `{ enabled, summarizerModel, pruneOn, showSummaryInUI }` stored in `<agent-dir>/context-prune/settings.json`.
 - **`SummarizerStats`** — cumulative token/cost stats: `{ totalInputTokens, totalOutputTokens, totalCost, callCount }`. Persisted via `pi.appendEntry(CUSTOM_TYPE_STATS, ...)`.
 - **`SummarizeResult`** — return type from summarizer: `{ summaryText, usage }` carrying both the markdown summary and LLM usage data.
 - **`SummaryMessageDetails`** — metadata attached to `context-prune-summary` custom messages.
 - Constants: `CUSTOM_TYPE_SUMMARY`, `CUSTOM_TYPE_INDEX`, `CUSTOM_TYPE_STATS`, `STATUS_WIDGET_ID`, `DEFAULT_CONFIG`, `CONTEXT_PRUNE_TOOL_NAME`, `AGENTIC_AUTO_SYSTEM_PROMPT`.
 
 ### `src/config.ts` — Config persistence
-- **`SETTINGS_PATH`** — constant resolving to `~/.pi/agent/context-prune/settings.json` (global, project-independent).
+- **`SETTINGS_PATH`** — constant resolving to `<agent-dir>/context-prune/settings.json` (global, project-independent).
 - **`loadConfig()`** — reads `SETTINGS_PATH`, parses JSON, merges with `DEFAULT_CONFIG`. Returns defaults on any read/parse error.
 - **`saveConfig(config)`** — creates the directory if needed (`mkdir recursive`) then writes the full config as the file root (no key wrapping).
 
@@ -147,7 +147,7 @@ Accumulates cumulative token/cost stats for summarizer LLM calls and persists th
 | Steer delivery for summary messages | Ensures the summary lands in context *before* the next LLM call, not after |
 | `pi.appendEntry` for persistence | Session custom entries survive restarts and branch navigation; index is rebuilt on `session_start` / `session_tree` |
 | `summarizerModel: "default"` | Reuses the active model's credentials via `ctx.modelRegistry.getApiKeyAndHeaders()` — no hidden side-channel or extra config needed |
-| Config in `~/.pi/agent/context-prune/settings.json` | Extension owns its own file — no risk of clobbering other Pi settings, and config persists across all projects |
+| Config in `<agent-dir>/context-prune/settings.json` | Extension owns its own file — no risk of clobbering other Pi settings, and config persists across all projects |
 | Five `pruneOn` trigger modes | `every-turn` (immediate), `on-context-tag` (aligned with save-points), `on-demand` (manual), `agent-message` (batch until final text response), `agentic-auto` (LLM decides via `context_prune` tool) — lets users trade immediacy for batch efficiency |
 | `pendingBatches` queue + `flushPending` | Decouples capture (always at `turn_end`) from summarization (mode-dependent). `flushPending` drains all pending batches into a **single** `summarizeBatches` LLM call, reducing round-trips from N to 1. |
 | `agent_end` safety-net flush | Prevents orphaned pending batches if the agent loop terminates before a text-only turn fires in `agent-message` mode |
