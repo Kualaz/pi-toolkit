@@ -82,18 +82,22 @@ function makeForegroundPrefix(color: string | null): string | undefined {
   return `\x1b[38;2;${rgb[0]};${rgb[1]};${rgb[2]}m`;
 }
 
-function padToWidth(line: string, width: number): string {
-  const clipped = visibleWidth(line) > width ? truncateToWidth(line, width, "") : line;
-  return clipped + " ".repeat(Math.max(0, width - visibleWidth(clipped)));
+function fitToWidth(line: string, width: number): string {
+  // Markdown.render() pads every line with printable spaces. Keeping that padding
+  // inside a styled block makes terminals include it in copied selections.
+  const unpadded = line.trimEnd();
+  return visibleWidth(unpadded) > width ? truncateToWidth(unpadded, width, "") : unpadded;
 }
 
 function applyBlockBackground(line: string, width: number, bgPrefix: string): string {
   // Do not emit \x1b[49m here. Pi's TUI resets every rendered line, and avoiding
-  // an inner background reset preserves nested Box backgrounds until this block
-  // intentionally covers the full line. If syntax highlighting emits a full reset,
-  // immediately re-apply the code-block background for the rest of the line.
-  const padded = padToWidth(line, width);
-  return bgPrefix + padded.replace(/\x1b\[(?:0)?m|\x1b\[49m/g, (reset) => reset + bgPrefix);
+  // an inner background reset preserves nested Box backgrounds. Erase to the end
+  // of the terminal line with the background active instead of printing padding;
+  // erased cells retain the background but are not copied as whitespace. If syntax
+  // highlighting emits a reset, re-apply the code-block background after it.
+  const content = fitToWidth(line, width);
+  const styled = content.replace(/\x1b\[(?:0)?m|\x1b\[49m/g, (reset) => reset + bgPrefix);
+  return `${bgPrefix}${styled}\x1b[K`;
 }
 
 function getLanguageLabel(rawLang: string, config: CodeBlockConfig): string {
@@ -119,7 +123,7 @@ function buildHeaderLine(fence: FenceLine, width: number, config: CodeBlockConfi
     : markdownTheme?.codeBlockBorder
       ? markdownTheme.codeBlockBorder(rawLabel)
       : rawLabel;
-  return padToWidth(`${fence.prefix}${styledLabel}`, width);
+  return fitToWidth(`${fence.prefix}${styledLabel}`, width);
 }
 
 export function transformRenderedMarkdownLines(
